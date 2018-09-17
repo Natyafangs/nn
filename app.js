@@ -1,9 +1,68 @@
 const express=require('express')
-const mongodb=require('mongodb')
+const mongoose=require('mongoose')
+const bodyParser=require('body-Parser')
+
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://localhost/DB').then((doc) => {
+    console.log('success')
+},(err) => {
+    console.log('fail')
+
+}) //เชื่อมต่อ DB
+
+var Schema= mongoose.Schema // สร้างสกีม่าเพื่อบอกว่าเก็บในรูปแบบไหน มันยังเป็นรูปแบบอยู่
+var StudentSchema = new Schema({
+    id:{
+        type: String,
+        unique: true,
+        required: true,
+        minlength: 8,
+        maxlength: 8
+    },
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName : {
+        type: String,
+        required: true,
+    },
+    age : Number
+
+})
+
+var Student = mongoose.model('Student', StudentSchema) // สร้าง  table
 
 var app = express()  //เรียกใช้เสมอถ้าใช้ express
+app.use(bodyParser.json()) // รู้จัก json
 
-let student=[
+app.get('/get',(req,res)=>{
+    Student.find().then((doc)=>{
+        res.send(doc)
+    },(err)=>{ 
+        res.status(400).send(err)
+
+    })
+
+})
+
+app.post('/post' , (req ,res)=>{
+    let newStudent = new Student({
+        id: req.body.id,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        age: req.body.age
+    })
+    newStudent.save().then((doc ) =>{
+        res.send(doc)
+
+    }, (err)=>{ 
+        res.status(400).send(err)
+    })
+
+})
+
+/*let student=[
     {
         id:'st1',name: 'aaa'
 
@@ -46,7 +105,7 @@ app.get('/all-student/name/:name' ,(req,res) => {
     }
     res.send('not found : '+studentName)
 })
-
+*/
 
 app.listen(3000,() => {
     console.log('is linten on port 3000')
